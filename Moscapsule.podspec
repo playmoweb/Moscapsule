@@ -16,12 +16,12 @@ Pod::Spec.new do |s|
   s.platform = :ios
   s.ios.deployment_target = '8.0'
 
-  s.source       = { :git => "https://github.com/flightonary/Moscapsule.git", :tag => s.version }
+  s.source       = { :git => "https://github.com/playmoweb/Moscapsule.git", :tag => s.version }
 
   s.source_files = "Moscapsule/*.{h,m,swift}", "mosquitto/lib/*.{h,c}"
   s.public_header_files = "Moscapsule/Moscapsule.h", "Moscapsule/MosquittoCallbackBridge.h", "mosquitto/lib/mosquitto.h"
 
-  s.libraries    = "ssl", "crypto"
+  s.libraries    = "ssl", "libcrypto"
   s.requires_arc = true
   s.xcconfig     = {
     'SWIFT_VERSION' => '4.0',
@@ -29,7 +29,5 @@ Pod::Spec.new do |s|
     'LIBRARY_SEARCH_PATHS' => '"$(PODS_ROOT)/OpenSSL-Universal/lib-ios"', # workaround
     'HEADER_SEARCH_PATHS' => '"${PODS_ROOT}/Headers/Public/OpenSSL-Universal"'
   }
-
-  #s.dependency      "OpenSSL-Universal", "~> 1.0.1.20"
 
 end
