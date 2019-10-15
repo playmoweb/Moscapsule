@@ -27,3 +27,5 @@
 //
 
 // this is dummy header
+
+#define UNUSED(x) (void)(x)

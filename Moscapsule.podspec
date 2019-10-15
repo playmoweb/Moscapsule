@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
   s.name         = "Moscapsule"
-  s.version      = "0.6.3"
+  s.version      = "0.7.1"
   s.summary      = "MQTT Client for iOS written in Swift"
   s.description  = <<-DESC
                    MQTT Client for iOS written in Swift.
@@ -23,11 +23,15 @@ Pod::Spec.new do |s|
 
   s.libraries    = "ssl", "crypto"
   s.requires_arc = true
+  # s.dependency      "OpenSSL-Universal"
   s.xcconfig     = {
     'SWIFT_VERSION' => '4.0',
     'OTHER_CFLAGS' => '-DWITH_THREADING -DWITH_TLS -DWITH_TLS_PSK',
-    'LIBRARY_SEARCH_PATHS' => '"$(PODS_ROOT)/OpenSSL-Universal/ios/lib"', # workaround
-    'HEADER_SEARCH_PATHS' => '"${PODS_ROOT}/Headers/Public/OpenSSL-Universal"'
+    'HEADER_SEARCH_PATHS' => '"${PODS_ROOT}/Headers/Public/OpenSSL-Universal"',
+    'LIBRARY_SEARCH_PATHS' => [
+      '"$(PODS_ROOT)/OpenSSL-Universal/lib-ios"',
+      '"$(PODS_ROOT)/OpenSSL-Universal/ios/lib"'
+    ]
   }
 
 end
