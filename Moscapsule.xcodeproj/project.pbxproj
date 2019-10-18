@@ -76,8 +76,6 @@
 		6362C7642356085800492772 /* srv_mosq.c in Sources */ = {isa = PBXBuildFile; fileRef = 6362C7212356085700492772 /* srv_mosq.c */; };
 		6362C7652356085800492772 /* will_mosq.h in Headers */ = {isa = PBXBuildFile; fileRef = 6362C7222356085700492772 /* will_mosq.h */; };
 		6362C7672356089500492772 /* config.h in Headers */ = {isa = PBXBuildFile; fileRef = 6362C7662356089500492772 /* config.h */; };
-		63693A792356188F00BED144 /* OpenSSL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 63693A782356188F00BED144 /* OpenSSL.framework */; };
-		63693A7A2356188F00BED144 /* OpenSSL.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 63693A782356188F00BED144 /* OpenSSL.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		C7360CC31A2435A8001F490F /* MosquittoCallbackBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = C7360CC21A2435A8001F490F /* MosquittoCallbackBridge.m */; };
 		C7360CC51A243AB9001F490F /* MosquittoCallbackBridge.h in Headers */ = {isa = PBXBuildFile; fileRef = C7360CC41A243949001F490F /* MosquittoCallbackBridge.h */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
@@ -91,20 +89,6 @@
 			remoteInfo = Moscapsule;
 		};
 /* End PBXContainerItemProxy section */
-
-/* Begin PBXCopyFilesBuildPhase section */
-		63693A7B2356188F00BED144 /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				63693A7A2356188F00BED144 /* OpenSSL.framework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		09CF6B131A21F78700A97383 /* Moscapsule.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Moscapsule.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -191,7 +175,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				63693A792356188F00BED144 /* OpenSSL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -396,7 +379,6 @@
 				09CF6B0F1A21F78700A97383 /* Frameworks */,
 				09CF6B101A21F78700A97383 /* Headers */,
 				09CF6B111A21F78700A97383 /* Resources */,
-				63693A7B2356188F00BED144 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -593,7 +575,8 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
-					"$(inherited)",
+					"WITH_THREADING=1",
+					"HAVE_PTHREAD_CANCEL=1",
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -647,6 +630,11 @@
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"WITH_THREADING=1",
+					"HAVE_PTHREAD_CANCEL=1",
+				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
@@ -759,7 +747,8 @@
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
-					"$(inherited)",
+					"WITH_THREADING=1",
+					"HAVE_PTHREAD_CANCEL=1",
 				);
 				INFOPLIST_FILE = MoscapsuleTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
@@ -774,6 +763,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"WITH_THREADING=1",
+					"HAVE_PTHREAD_CANCEL=1",
+				);
 				INFOPLIST_FILE = MoscapsuleTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.github.flightonary.$(PRODUCT_NAME:rfc1034identifier)";
