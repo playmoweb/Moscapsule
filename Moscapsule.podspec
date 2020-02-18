@@ -1,22 +1,22 @@
 Pod::Spec.new do |s|
 
   s.name         = "Moscapsule"
-  s.version      = "0.6.4"
+  s.version      = "0.6.5"
   s.summary      = "MQTT Client for iOS written in Swift"
   s.description  = <<-DESC
                    MQTT Client for iOS written in Swift.
                    This framework is implemented as a wrapper of Mosquitto library
                    and covers almost all mosquitto features.
                    DESC
-  s.homepage     = "https://github.com/flightonary/Moscapsule"
+  s.homepage     = "https://github.com/playmoweb/Moscapsule"
 
   s.license      = "MIT"
-  s.author       = { "tonary" => "nekomelife@gmail.com" }
+  s.author       = { "playmoweb" => "contact@playmoweb.com" }
 
   s.platform = :ios
-  s.ios.deployment_target = '8.0'
+  s.ios.deployment_target = '10.0'
 
-  s.source       = { :git => "https://github.com/flightonary/Moscapsule.git", :tag => s.version }
+  s.source       = { :git => "https://github.com/playmoweb/Moscapsule.git", :tag => s.version }
 
   s.source_files = "Moscapsule/*.{h,m,swift}", "mosquitto/lib/*.{h,c}"
   s.public_header_files = "Moscapsule/Moscapsule.h", "Moscapsule/MosquittoCallbackBridge.h", "mosquitto/lib/mosquitto.h"
@@ -27,12 +27,11 @@ Pod::Spec.new do |s|
     'SWIFT_VERSION' => '4.0',
     'OTHER_CFLAGS' => '-DWITH_THREADING -DWITH_TLS -DWITH_TLS_PSK',
     'HEADER_SEARCH_PATHS' => '"${PODS_ROOT}/Headers/Public/OpenSSL-Universal"',
+    'GCC_PREPROCESSOR_DEFINITIONS' => '${inherited} WITH_THREADING=1 HAVE_PTHREAD_CANCEL=1',
     'LIBRARY_SEARCH_PATHS' => [
       '"$(PODS_ROOT)/OpenSSL-Universal/lib-ios"',
       '"$(PODS_ROOT)/OpenSSL-Universal/ios/lib"'
     ]
   }
-
-  #s.dependency      "OpenSSL-Universal", "~> 1.0.1.20"  # not working well
 
 end
