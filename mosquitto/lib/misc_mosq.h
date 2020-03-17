@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2010-2020 Roger Light <roger@atchoo.org>
+Copyright (c) 2009-2020 Roger Light <roger@atchoo.org>
 
 All rights reserved. This program and the accompanying materials
 are made available under the terms of the Eclipse Public License v1.0
@@ -13,14 +13,13 @@ and the Eclipse Distribution License is available at
 Contributors:
    Roger Light - initial implementation and documentation.
 */
+#ifndef MISC_MOSQ_H
+#define MISC_MOSQ_H
 
-#ifndef WILL_MOSQ_H
-#define WILL_MOSQ_H
+#include <stdbool.h>
 
-#include "mosquitto.h"
-#include "mosquitto_internal.h"
-
-int will__set(struct mosquitto *mosq, const char *topic, int payloadlen, const void *payload, int qos, bool retain, mosquitto_property *properties);
-int will__clear(struct mosquitto *mosq);
+FILE *mosquitto__fopen(const char *path, const char *mode, bool restrict_read);
+char *misc__trimblanks(char *str);
+char *fgets_extending(char **buf, int *buflen, FILE *stream);
 
 #endif

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2010-2019 Roger Light <roger@atchoo.org>
+Copyright (c) 2010-2020 Roger Light <roger@atchoo.org>
 
 All rights reserved. This program and the accompanying materials
 are made available under the terms of the Eclipse Public License v1.0
@@ -19,6 +19,7 @@ Contributors:
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "utlist.h"
 
 #include "mosquitto_internal.h"

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2009-2019 Roger Light <roger@atchoo.org>
+Copyright (c) 2009-2020 Roger Light <roger@atchoo.org>
 
 All rights reserved. This program and the accompanying materials
 are made available under the terms of the Eclipse Public License v1.0
@@ -199,7 +199,9 @@ int net__socket_close(struct mosquitto *mosq)
 #endif
 	{
 		if(mosq->ssl){
-			SSL_shutdown(mosq->ssl);
+			if(!SSL_in_init(mosq->ssl)){
+				SSL_shutdown(mosq->ssl);
+			}
 			SSL_free(mosq->ssl);
 			mosq->ssl = NULL;
 		}
@@ -466,11 +468,13 @@ void net__print_ssl_error(struct mosquitto *mosq)
 {
 	char ebuf[256];
 	unsigned long e;
+	int num = 0;
 
 	e = ERR_get_error();
 	while(e){
-		log__printf(mosq, MOSQ_LOG_ERR, "OpenSSL Error: %s", ERR_error_string(e, ebuf));
+		log__printf(mosq, MOSQ_LOG_ERR, "OpenSSL Error[%d]: %s", num, ERR_error_string(e, ebuf));
 		e = ERR_get_error();
+		num++;
 	}
 }
 
@@ -587,14 +591,14 @@ static int net__init_ssl_ctx(struct mosquitto *mosq)
 
 		/* Disable compression */
 		SSL_CTX_set_options(mosq->ssl_ctx, SSL_OP_NO_COMPRESSION);
-        
-        /* Set ALPN */
-        if(mosq->tls_alpn) {
-            tls_alpn_len = (uint8_t) strnlen(mosq->tls_alpn, 254);
-            tls_alpn_wire[0] = tls_alpn_len;  // first byte is length of string
-            memcpy(tls_alpn_wire + 1, mosq->tls_alpn, tls_alpn_len);
-            SSL_CTX_set_alpn_protos(mosq->ssl_ctx, tls_alpn_wire, tls_alpn_len + 1);
-        }
+
+		/* Set ALPN */
+		if(mosq->tls_alpn) {
+			tls_alpn_len = (uint8_t) strnlen(mosq->tls_alpn, 254);
+			tls_alpn_wire[0] = tls_alpn_len;  // first byte is length of string
+			memcpy(tls_alpn_wire + 1, mosq->tls_alpn, tls_alpn_len);
+			SSL_CTX_set_alpn_protos(mosq->ssl_ctx, tls_alpn_wire, tls_alpn_len + 1);
+		}
 
 #ifdef SSL_MODE_RELEASE_BUFFERS
 			/* Use even less memory per SSL connection. */
@@ -856,7 +860,6 @@ ssize_t net__read(struct mosquitto *mosq, void *buf, size_t count)
 	errno = 0;
 #ifdef WITH_TLS
 	if(mosq->ssl){
-		ERR_clear_error();
 		ret = SSL_read(mosq->ssl, buf, count);
 		if(ret <= 0){
 			err = SSL_get_error(mosq->ssl, ret);
@@ -871,6 +874,7 @@ ssize_t net__read(struct mosquitto *mosq, void *buf, size_t count)
 				net__print_ssl_error(mosq);
 				errno = EPROTO;
 			}
+			ERR_clear_error();
 #ifdef WIN32
 			WSASetLastError(errno);
 #endif
@@ -904,7 +908,6 @@ ssize_t net__write(struct mosquitto *mosq, void *buf, size_t count)
 #ifdef WITH_TLS
 	if(mosq->ssl){
 		mosq->want_write = false;
-		ERR_clear_error();
 		ret = SSL_write(mosq->ssl, buf, count);
 		if(ret < 0){
 			err = SSL_get_error(mosq->ssl, ret);
@@ -919,6 +922,7 @@ ssize_t net__write(struct mosquitto *mosq, void *buf, size_t count)
 				net__print_ssl_error(mosq);
 				errno = EPROTO;
 			}
+			ERR_clear_error();
 #ifdef WIN32
 			WSASetLastError(errno);
 #endif
