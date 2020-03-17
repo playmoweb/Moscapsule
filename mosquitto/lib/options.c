@@ -324,7 +324,6 @@ int mosquitto_string_option(struct mosquitto *mosq, enum mosq_opt_t option, cons
 		default:
 			return MOSQ_ERR_INVAL;
 	}
-    return MOSQ_ERR_INVAL;
 }
 
 
