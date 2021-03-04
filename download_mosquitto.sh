@@ -1,6 +1,6 @@
 #!/bin/bash
 
-MOSQ_VERSION="1.6.7"
+MOSQ_VERSION="2.0.7"
 MOSQ_URL="http://mosquitto.org/files/source/mosquitto-${MOSQ_VERSION}.tar.gz"
 
 TMP_FILE="/tmp/mosquitto-${MOSQ_VERSION}.tar.gz"

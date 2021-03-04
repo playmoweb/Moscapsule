@@ -1,15 +1,17 @@
 /*
-Copyright (c) 2010-2019 Roger Light <roger@atchoo.org>
+Copyright (c) 2010-2020 Roger Light <roger@atchoo.org>
 
 All rights reserved. This program and the accompanying materials
-are made available under the terms of the Eclipse Public License v1.0
+are made available under the terms of the Eclipse Public License 2.0
 and Eclipse Distribution License v1.0 which accompany this distribution.
  
 The Eclipse Public License is available at
-   http://www.eclipse.org/legal/epl-v10.html
+   https://www.eclipse.org/legal/epl-2.0/
 and the Eclipse Distribution License is available at
   http://www.eclipse.org/org/documents/edl-v10.php.
  
+SPDX-License-Identifier: EPL-2.0 OR BSD-3-Clause
+
 Contributors:
    Roger Light - initial implementation and documentation.
 */
@@ -41,11 +43,11 @@ int will__set(struct mosquitto *mosq, const char *topic, int payloadlen, const v
 	mosquitto_property *p;
 
 	if(!mosq || !topic) return MOSQ_ERR_INVAL;
-	if(payloadlen < 0 || payloadlen > MQTT_MAX_PAYLOAD) return MOSQ_ERR_PAYLOAD_SIZE;
+	if(payloadlen < 0 || payloadlen > (int)MQTT_MAX_PAYLOAD) return MOSQ_ERR_PAYLOAD_SIZE;
 	if(payloadlen > 0 && !payload) return MOSQ_ERR_INVAL;
 
 	if(mosquitto_pub_topic_check(topic)) return MOSQ_ERR_INVAL;
-	if(mosquitto_validate_utf8(topic, strlen(topic))) return MOSQ_ERR_MALFORMED_UTF8;
+	if(mosquitto_validate_utf8(topic, (uint16_t)strlen(topic))) return MOSQ_ERR_MALFORMED_UTF8;
 
 	if(properties){
 		if(mosq->protocol != mosq_p_mqtt5){
@@ -79,13 +81,13 @@ int will__set(struct mosquitto *mosq, const char *topic, int payloadlen, const v
 			rc = MOSQ_ERR_INVAL;
 			goto cleanup;
 		}
-		mosq->will->msg.payload = mosquitto__malloc(sizeof(char)*mosq->will->msg.payloadlen);
+		mosq->will->msg.payload = mosquitto__malloc(sizeof(char)*(unsigned int)mosq->will->msg.payloadlen);
 		if(!mosq->will->msg.payload){
 			rc = MOSQ_ERR_NOMEM;
 			goto cleanup;
 		}
 
-		memcpy(mosq->will->msg.payload, payload, payloadlen);
+		memcpy(mosq->will->msg.payload, payload, (unsigned int)payloadlen);
 	}
 	mosq->will->msg.qos = qos;
 	mosq->will->msg.retain = retain;
@@ -120,6 +122,7 @@ int will__clear(struct mosquitto *mosq)
 
 	mosquitto__free(mosq->will);
 	mosq->will = NULL;
+	mosq->will_delay_interval = 0;
 
 	return MOSQ_ERR_SUCCESS;
 }
