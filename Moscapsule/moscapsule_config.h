@@ -1,5 +1,5 @@
 //
-//  config.h
+//  moscapsule_config.h
 //  MosquittoSwiftWrapper
 //
 //  Created by flightonary on 2014/11/23.

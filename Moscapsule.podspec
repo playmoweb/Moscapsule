@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
   s.name         = "Moscapsule"
-  s.version      = "0.6.5"
+  s.version      = "0.6.6"
   s.summary      = "MQTT Client for iOS written in Swift"
   s.description  = <<-DESC
                    MQTT Client for iOS written in Swift.
@@ -29,7 +29,6 @@ Pod::Spec.new do |s|
     'HEADER_SEARCH_PATHS' => '"${PODS_ROOT}/Headers/Public/OpenSSL-Universal"',
     'GCC_PREPROCESSOR_DEFINITIONS' => '${inherited} WITH_THREADING=1 HAVE_PTHREAD_CANCEL=1',
     'LIBRARY_SEARCH_PATHS' => [
-      '"$(PODS_ROOT)/OpenSSL-Universal/lib-ios"',
       '"$(PODS_ROOT)/OpenSSL-Universal/ios/lib"'
     ]
   }

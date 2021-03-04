@@ -1,14 +1,16 @@
 /*
-Copyright (c) 2009-2019 Roger Light <roger@atchoo.org>
+Copyright (c) 2009-2020 Roger Light <roger@atchoo.org>
 
 All rights reserved. This program and the accompanying materials
-are made available under the terms of the Eclipse Public License v1.0
+are made available under the terms of the Eclipse Public License 2.0
 and Eclipse Distribution License v1.0 which accompany this distribution.
 
 The Eclipse Public License is available at
-   http://www.eclipse.org/legal/epl-v10.html
+   https://www.eclipse.org/legal/epl-2.0/
 and the Eclipse Distribution License is available at
   http://www.eclipse.org/org/documents/edl-v10.php.
+
+SPDX-License-Identifier: EPL-2.0 OR BSD-3-Clause
 
 Contributors:
    Roger Light - initial implementation and documentation.
@@ -36,23 +38,17 @@ Contributors:
 #include "util_mosq.h"
 
 
-#ifdef WITH_BROKER
-int handle__pubackcomp(struct mosquitto_db *db, struct mosquitto *mosq, const char *type)
-#else
 int handle__pubackcomp(struct mosquitto *mosq, const char *type)
-#endif
 {
 	uint8_t reason_code = 0;
 	uint16_t mid;
 	int rc;
 	mosquitto_property *properties = NULL;
 	int qos;
-	int state;
 
 	assert(mosq);
 
-	state = mosquitto__get_state(mosq);
-	if(state != mosq_cs_active){
+	if(mosquitto__get_state(mosq) != mosq_cs_active){
 		return MOSQ_ERR_PROTOCOL;
 	}
 
@@ -81,7 +77,7 @@ int handle__pubackcomp(struct mosquitto *mosq, const char *type)
 	/* Immediately free, we don't do anything with Reason String or User Property at the moment */
 	mosquitto_property_free_all(&properties);
 
-	rc = db__message_delete_outgoing(db, mosq, mid, mosq_ms_wait_for_pubcomp, qos);
+	rc = db__message_delete_outgoing(mosq, mid, mosq_ms_wait_for_pubcomp, qos);
 	if(rc == MOSQ_ERR_NOT_FOUND){
 		log__printf(mosq, MOSQ_LOG_WARNING, "Warning: Received %s from %s for an unknown packet identifier %d.", type, mosq->id, mid);
 		return MOSQ_ERR_SUCCESS;
@@ -92,9 +88,7 @@ int handle__pubackcomp(struct mosquitto *mosq, const char *type)
 	log__printf(mosq, MOSQ_LOG_DEBUG, "Client %s received %s (Mid: %d, RC:%d)", mosq->id, type, mid, reason_code);
 
 	rc = message__delete(mosq, mid, mosq_md_out, qos);
-	if(rc){
-		return rc;
-	}else{
+	if(rc == MOSQ_ERR_SUCCESS){
 		/* Only inform the client the message has been sent once. */
 		pthread_mutex_lock(&mosq->callback_mutex);
 		if(mosq->on_publish){
@@ -109,6 +103,8 @@ int handle__pubackcomp(struct mosquitto *mosq, const char *type)
 		}
 		pthread_mutex_unlock(&mosq->callback_mutex);
 		mosquitto_property_free_all(&properties);
+	}else if(rc != MOSQ_ERR_NOT_FOUND){
+		return rc;
 	}
 	pthread_mutex_lock(&mosq->msgs_out.mutex);
 	message__release_to_inflight(mosq, mosq_md_out);

@@ -1,15 +1,17 @@
 /*
-Copyright (c) 2009-2014 Roger Light <roger@atchoo.org>
+Copyright (c) 2009-2020 Roger Light <roger@atchoo.org>
 Copyright (c) 2017 Bayerische Motoren Werke Aktiengesellschaft (BMW AG), Dr. Lars Voelker <lars.voelker@bmw.de>
 
 All rights reserved. This program and the accompanying materials
-are made available under the terms of the Eclipse Public License v1.0
+are made available under the terms of the Eclipse Public License 2.0
 and Eclipse Distribution License v1.0 which accompany this distribution.
 
 The Eclipse Public License is available at
-   http://www.eclipse.org/legal/epl-v10.html
+   https://www.eclipse.org/legal/epl-2.0/
 and the Eclipse Distribution License is available at
   http://www.eclipse.org/org/documents/edl-v10.php.
+
+SPDX-License-Identifier: EPL-2.0 OR BSD-3-Clause
 
 Contributors:
    Dr. Lars Voelker, BMW AG
@@ -40,6 +42,8 @@ be used in advertising or otherwise to promote the sale, use or other dealings
 in this Software without prior written authorization of the copyright holder.
 */
 
+#include "config.h"
+
 #ifdef WITH_TLS
 #include <logging_mosq.h>
 #include <mosquitto_internal.h>
@@ -61,10 +65,12 @@ int mosquitto__verify_ocsp_status_cb(SSL * ssl, void *arg)
 	X509_STORE     *st = NULL;
 	STACK_OF(X509) *ch = NULL;
 
+	UNUSED(ssl);
+
 	long len = SSL_get_tlsext_status_ocsp_resp(mosq->ssl, &p);
 	log__printf(mosq, MOSQ_LOG_DEBUG, "OCSP: SSL_get_tlsext_status_ocsp_resp returned %ld bytes", len);
 
-	// the following functions expect a const pointer
+	/* the following functions expect a const pointer */
 	cp = (const unsigned char *)p;
 
 	if (!cp || len <= 0) {
@@ -100,9 +106,10 @@ int mosquitto__verify_ocsp_status_cb(SSL * ssl, void *arg)
 
 	st = SSL_CTX_get_cert_store(mosq->ssl_ctx);
 
-	// Note:
-	//    Other checkers often fix problems in OpenSSL before 1.0.2a (e.g. libcurl).
-	//    For all currently supported versions of the OpenSSL project, this is not needed anymore.
+	/* Note:
+	 * Other checkers often fix problems in OpenSSL before 1.0.2a (e.g. libcurl).
+	 * For all currently supported versions of the OpenSSL project, this is not needed anymore.
+	 */
 
 	if ((result2=OCSP_basic_verify(br, ch, st, 0)) <= 0) {
 		log__printf(mosq, MOSQ_LOG_DEBUG, "OCSP: response verification failed (error: %d)", result2);
@@ -126,7 +133,7 @@ int mosquitto__verify_ocsp_status_cb(SSL * ssl, void *arg)
 
 		switch(cert_status) {
 			case V_OCSP_CERTSTATUS_GOOD:
-				// Note: A OCSP stapling result will be accepted up to 5 minutes after it expired!
+				/* Note: A OCSP stapling result will be accepted up to 5 minutes after it expired! */
 				if(!OCSP_check_validity(thisupd, nextupd, 300L, -1L)) {
 					log__printf(mosq, MOSQ_LOG_DEBUG, "OCSP: OCSP response has expired");
 					goto end;
@@ -149,11 +156,11 @@ int mosquitto__verify_ocsp_status_cb(SSL * ssl, void *arg)
 
 	if (br!=NULL)  OCSP_BASICRESP_free(br);
 	if (rsp!=NULL) OCSP_RESPONSE_free(rsp);
-	return 1; // OK
+	return 1; /* OK */
 
 end:
 	if (br!=NULL)  OCSP_BASICRESP_free(br);
 	if (rsp!=NULL) OCSP_RESPONSE_free(rsp);
-	return 0; // Not OK
+	return 0; /* Not OK */
 }
 #endif

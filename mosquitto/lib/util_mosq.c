@@ -1,14 +1,16 @@
 /*
-Copyright (c) 2009-2019 Roger Light <roger@atchoo.org>
+Copyright (c) 2009-2020 Roger Light <roger@atchoo.org>
 
 All rights reserved. This program and the accompanying materials
-are made available under the terms of the Eclipse Public License v1.0
+are made available under the terms of the Eclipse Public License 2.0
 and Eclipse Distribution License v1.0 which accompany this distribution.
 
 The Eclipse Public License is available at
-   http://www.eclipse.org/legal/epl-v10.html
+   https://www.eclipse.org/legal/epl-2.0/
 and the Eclipse Distribution License is available at
   http://www.eclipse.org/org/documents/edl-v10.php.
+
+SPDX-License-Identifier: EPL-2.0 OR BSD-3-Clause
 
 Contributors:
    Roger Light - initial implementation and documentation.
@@ -17,6 +19,7 @@ Contributors:
 #include "config.h"
 
 #include <assert.h>
+#include <ctype.h>
 #include <string.h>
 
 #ifdef WIN32
@@ -56,21 +59,23 @@ Contributors:
 #include <libwebsockets.h>
 #endif
 
-#ifdef WITH_BROKER
-int mosquitto__check_keepalive(struct mosquitto_db *db, struct mosquitto *mosq)
-#else
 int mosquitto__check_keepalive(struct mosquitto *mosq)
-#endif
 {
 	time_t next_msg_out;
 	time_t last_msg_in;
-	time_t now = mosquitto_time();
+	time_t now;
 #ifndef WITH_BROKER
 	int rc;
 #endif
-	int state;
+	enum mosquitto_client_state state;
 
 	assert(mosq);
+#ifdef WITH_BROKER
+	now = db.now_s;
+#else
+	now = mosquitto_time();
+#endif
+
 #if defined(WITH_BROKER) && defined(WITH_BRIDGE)
 	/* Check if a lazy bridge should be timed out due to idle. */
 	if(mosq->bridge && mosq->bridge->start_type == bst_lazy
@@ -78,7 +83,7 @@ int mosquitto__check_keepalive(struct mosquitto *mosq)
 				&& now - mosq->next_msg_out - mosq->keepalive >= mosq->bridge->idle_timeout){
 
 		log__printf(NULL, MOSQ_LOG_NOTICE, "Bridge connection %s has exceeded idle timeout, disconnecting.", mosq->id);
-		net__socket_close(db, mosq);
+		net__socket_close(mosq);
 		return MOSQ_ERR_SUCCESS;
 	}
 #endif
@@ -99,7 +104,7 @@ int mosquitto__check_keepalive(struct mosquitto *mosq)
 			pthread_mutex_unlock(&mosq->msgtime_mutex);
 		}else{
 #ifdef WITH_BROKER
-			net__socket_close(db, mosq);
+			net__socket_close(mosq);
 #else
 			net__socket_close(mosq);
 			state = mosquitto__get_state(mosq);
@@ -160,6 +165,9 @@ int mosquitto__hex2bin_sha1(const char *hex, unsigned char **bin)
 	}
 
 	sha = mosquitto__malloc(SHA_DIGEST_LENGTH);
+	if(!sha){
+		return MOSQ_ERR_NOMEM;
+	}
 	memcpy(sha, tmp, SHA_DIGEST_LENGTH);
 	*bin = sha;
 	return MOSQ_ERR_SUCCESS;
@@ -198,96 +206,6 @@ int mosquitto__hex2bin(const char *hex, unsigned char *bin, int bin_max_len)
 	return len + leading_zero;
 }
 #endif
-
-FILE *mosquitto__fopen(const char *path, const char *mode, bool restrict_read)
-{
-#ifdef WIN32
-	char buf[4096];
-	int rc;
-	rc = ExpandEnvironmentStrings(path, buf, 4096);
-	if(rc == 0 || rc > 4096){
-		return NULL;
-	}else{
-		if (restrict_read) {
-			HANDLE hfile;
-			SECURITY_ATTRIBUTES sec;
-			EXPLICIT_ACCESS ea;
-			PACL pacl = NULL;
-			char username[UNLEN + 1];
-			int ulen = UNLEN;
-			SECURITY_DESCRIPTOR sd;
-			DWORD dwCreationDisposition;
-
-			switch(mode[0]){
-				case 'a':
-					dwCreationDisposition = OPEN_ALWAYS;
-					break;
-				case 'r':
-					dwCreationDisposition = OPEN_EXISTING;
-					break;
-				case 'w':
-					dwCreationDisposition = CREATE_ALWAYS;
-					break;
-				default:
-					return NULL;
-			}
-
-			GetUserName(username, &ulen);
-			if (!InitializeSecurityDescriptor(&sd, SECURITY_DESCRIPTOR_REVISION)) {
-				return NULL;
-			}
-			BuildExplicitAccessWithName(&ea, username, GENERIC_ALL, SET_ACCESS, NO_INHERITANCE);
-			if (SetEntriesInAcl(1, &ea, NULL, &pacl) != ERROR_SUCCESS) {
-				return NULL;
-			}
-			if (!SetSecurityDescriptorDacl(&sd, TRUE, pacl, FALSE)) {
-				LocalFree(pacl);
-				return NULL;
-			}
-
-			sec.nLength = sizeof(SECURITY_ATTRIBUTES);
-			sec.bInheritHandle = FALSE;
-			sec.lpSecurityDescriptor = &sd;
-
-			hfile = CreateFile(buf, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ,
-				&sec,
-				dwCreationDisposition,
-				FILE_ATTRIBUTE_NORMAL,
-				NULL);
-
-			LocalFree(pacl);
-
-			int fd = _open_osfhandle((intptr_t)hfile, 0);
-			if (fd < 0) {
-				return NULL;
-			}
-
-			FILE *fptr = _fdopen(fd, mode);
-			if (!fptr) {
-				_close(fd);
-				return NULL;
-			}
-			return fptr;
-
-		}else {
-			return fopen(buf, mode);
-		}
-	}
-#else
-	if (restrict_read) {
-		FILE *fptr;
-		mode_t old_mask;
-
-		old_mask = umask(0077);
-		fptr = fopen(path, mode);
-		umask(old_mask);
-
-		return fptr;
-	}else{
-		return fopen(path, mode);
-	}
-#endif
-}
 
 void util__increment_receive_quota(struct mosquitto *mosq)
 {
@@ -328,7 +246,7 @@ int util__random_bytes(void *bytes, int count)
 		rc = MOSQ_ERR_SUCCESS;
 	}
 #elif defined(HAVE_GETRANDOM)
-	if(getrandom(bytes, count, 0) == count){
+	if(getrandom(bytes, (size_t)count, 0) == count){
 		rc = MOSQ_ERR_SUCCESS;
 	}
 #elif defined(WIN32)
@@ -379,4 +297,3 @@ enum mosquitto_client_state mosquitto__get_state(struct mosquitto *mosq)
 
 	return state;
 }
-
